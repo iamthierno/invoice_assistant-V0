@@ -13,7 +13,7 @@ import { DevisPreview } from './components/devis/DevisPreview'
 function App() {
   const {
     items, clientInfo, globalTax, globalDiscount, totals, status, isSyncing,
-    initializeInvoice, addItem, deleteItem, setClientInfo
+    initializeInvoice, addItem, updateItem, deleteItem, setClientInfo
   } = useInvoiceStore()
 
   const { messages, addMessage } = useChat()
@@ -82,13 +82,21 @@ function App() {
       globalTax={globalTax}
       globalDiscount={globalDiscount}
       onDeleteItem={deleteItem}
+      onClientInfoChange={setClientInfo}
+      onUpdateItem={updateItem}
     />
   )
+
+  const handleAddItem = () => {
+    // Add item with empty values - placeholders will show
+    addItem({ description: '', quantity: 0, unitPrice: 0, tax: 0, discount: 0 })
+  }
 
   return (
     <DashboardLayout
       leftPanel={LeftPanel}
       rightPanel={RightPanel}
+      onAddItem={handleAddItem}
     />
   )
 }

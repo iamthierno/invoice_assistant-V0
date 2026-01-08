@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { InvoiceItem, ClientInfo, InvoiceTotals } from '../types';
 import { apiService } from './api';
+import { calculateInvoiceTotals } from '../utils/calculations';
 
 interface InvoiceStore {
     // State
@@ -17,6 +18,7 @@ interface InvoiceStore {
     // Actions
     initializeInvoice: () => Promise<void>;
     addItem: (item: Omit<InvoiceItem, 'id'>) => Promise<void>;
+    updateItem: (id: string, updates: Partial<InvoiceItem>) => void;
     deleteItem: (id: string) => Promise<void>;
     setClientInfo: (info: Partial<ClientInfo>) => Promise<void>;
     updateGlobalTax: (rate: number) => Promise<void>;
@@ -98,6 +100,19 @@ export const useInvoiceStore = create<InvoiceStore>((set, get) => ({
         } finally {
             set({ isSyncing: false });
         }
+    },
+
+    updateItem: (id, updates) => {
+        // Local optimistic update with totals recalculation
+        const { items, globalTax, globalDiscount } = get();
+        const updatedItems = items.map(item =>
+            item.id === id ? { ...item, ...updates } : item
+        );
+
+        // Recalculate totals locally for immediate feedback
+        const newTotals = calculateInvoiceTotals(updatedItems, globalTax, globalDiscount);
+
+        set({ items: updatedItems, totals: newTotals });
     },
 
     deleteItem: async (itemId) => {
