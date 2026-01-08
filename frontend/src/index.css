@@ -1,0 +1,155 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  --animate-wave-slow: wave 3s ease-in-out infinite;
+  --animate-wave-fast: wave 1.5s ease-in-out infinite;
+}
+
+@keyframes wave {
+
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+
+  50% {
+    transform: scaleY(1.5);
+  }
+}
+
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 32.1% 91.4%;
+    --input: 214.3 32.1% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.75rem;
+  }
+
+  * {
+    border-color: var(--color-border);
+  }
+}
+
+body {
+  background-color: #f8fafc;
+  /* bg-slate-50 */
+  color: #0f172a;
+  /* text-slate-900 */
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Premium Minimalist Utilities */
+.glass-light {
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid white;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+}
+
+.invoice-paper {
+  background-color: white;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
+  border-radius: 0.25rem;
+  padding: 3rem;
+  /* Balanced padding */
+  width: 100%;
+  max-width: 21cm;
+  height: min(90vh, 29.7cm);
+  /* Balanced height for no-scroll and readable scale */
+  display: flex;
+  flex-direction: column;
+  margin-left: auto;
+  margin-right: auto;
+  border: 1px solid #f1f5f9;
+  position: relative;
+}
+
+
+
+.chat-bubble-ai {
+  background-color: white;
+  border: 1px solid #f1f5f9;
+  /* border-slate-100 */
+  color: #334155;
+  /* text-slate-700 */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  /* shadow-sm */
+  border-radius: 1rem;
+}
+
+.chat-bubble-user {
+  background-color: #2563eb;
+  /* bg-blue-600 */
+  color: white;
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.1), 0 2px 4px -2px rgba(37, 99, 235, 0.1);
+  border-radius: 1rem;
+}
+
+.mic-active {
+  background-color: #fff1f2;
+  /* bg-rose-50 */
+  border-color: #ffe4e6;
+  /* border-rose-100 */
+  color: #f43f5e;
+  /* text-rose-500 */
+  box-shadow: 0 0 20px rgba(244, 63, 94, 0.15);
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
