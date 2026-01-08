@@ -21,4 +21,7 @@ router.post('/:id/items', invoiceController.addItem);
 // Delete item
 router.delete('/items/:itemId', invoiceController.deleteItem);
 
+// Update item
+router.put('/items/:itemId', invoiceController.updateItem);
+
 export default router;

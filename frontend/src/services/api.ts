@@ -31,6 +31,12 @@ export const apiService = {
         return response.data;
     },
 
+    // Update an item
+    async updateItem(itemId: string, item: Partial<{ description: string; quantity: number; unitPrice: number; tax: number; discount: number }>) {
+        const response = await axios.put(`${config.apiUrl}/api/invoices/items/${itemId}`, item);
+        return response.data;
+    },
+
     // Update Global fields (Tax, Discount, Client)
     async updateInvoice(invoiceId: string, data: { clientInfo?: ClientInfo; globalTax?: number; globalDiscount?: number }) {
         const response = await axios.put(`${config.apiUrl}/api/invoices/${invoiceId}`, data);

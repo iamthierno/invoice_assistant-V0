@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { User, Phone } from 'lucide-react'
+import { useEffect, useRef } from 'react'
 import type { ClientInfo, InvoiceItem, InvoiceTotals } from '../../types'
 import { DevisItemRow } from './DevisItemRow'
 import { DevisTotals } from './DevisTotals'
@@ -17,6 +18,21 @@ interface DevisPreviewProps {
 }
 
 export const DevisPreview = ({ items, clientInfo, totals, globalTax, globalDiscount, onDeleteItem, onClientInfoChange, onUpdateItem }: DevisPreviewProps) => {
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const prevItemsLength = useRef(items.length);
+
+    useEffect(() => {
+        if (items.length > prevItemsLength.current) {
+            if (scrollRef.current) {
+                scrollRef.current.scrollTo({
+                    top: scrollRef.current.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }
+        }
+        prevItemsLength.current = items.length;
+    }, [items.length]);
+
     return (
         <motion.div
             initial={{ opacity: 0, x: 20 }}
@@ -71,17 +87,17 @@ export const DevisPreview = ({ items, clientInfo, totals, globalTax, globalDisco
             </div>
 
             {/* Items Table */}
-            <div className="flex-1 overflow-hidden min-h-0 py-1">
-                <table className="w-full text-left">
-                    <thead>
-                        <tr className="border-b border-slate-900 text-slate-900 text-[10px] font-bold uppercase tracking-widest">
-                            <th className="py-4">Désignation</th>
-                            <th className="py-4 px-2 text-center w-24">Qté</th>
-                            <th className="py-4 px-2 text-center w-32">PU (XOF)</th>
-                            <th className="py-4 text-right">Montant HT (XOF)</th>
+            <div className="flex-1 overflow-y-auto scrollbar-hide min-h-0 pr-8 -mr-8 relative" ref={scrollRef}>
+                <table className="w-full text-left border-separate border-spacing-0">
+                    <thead className="sticky top-0 z-20">
+                        <tr className="text-slate-900 text-[11px] font-bold uppercase tracking-widest">
+                            <th className="py-3 bg-white border-b border-slate-900">Désignation</th>
+                            <th className="py-3 px-2 text-center w-30 bg-white border-b border-slate-900">Qté</th>
+                            <th className="py-3 px-2 text-center w-50 bg-white border-b border-slate-900">PU (XOF)</th>
+                            <th className="py-3 text-right bg-white border-b border-slate-900">Montant HT (XOF)</th>
                         </tr>
                     </thead>
-                    <tbody className="text-slate-700 overflow-y-auto max-h-full scrollbar-hide">
+                    <tbody className="text-slate-700">
                         <AnimatePresence initial={false}>
                             {items.length === 0 ? (
                                 <tr>

@@ -275,6 +275,47 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Procedure: Update invoice item (New)
+CREATE OR REPLACE FUNCTION update_invoice_item(
+    p_item_id UUID,
+    p_description TEXT DEFAULT NULL,
+    p_quantity DECIMAL DEFAULT NULL,
+    p_unit_price DECIMAL DEFAULT NULL,
+    p_tax DECIMAL DEFAULT NULL,
+    p_discount DECIMAL DEFAULT NULL
+)
+RETURNS JSON AS $$
+DECLARE
+    v_invoice_id UUID;
+    result JSON;
+BEGIN
+    SELECT invoice_id INTO v_invoice_id FROM invoice_items WHERE id = p_item_id;
+    
+    UPDATE invoice_items SET
+        description = COALESCE(p_description, description),
+        quantity = COALESCE(p_quantity, quantity),
+        unit_price = COALESCE(p_unit_price, unit_price),
+        tax_rate = COALESCE(p_tax, tax_rate),
+        discount_rate = COALESCE(p_discount, discount_rate)
+    WHERE id = p_item_id;
+    
+    -- Recalculate Totals
+    PERFORM perform_invoice_calculation(v_invoice_id);
+    
+    -- Return the updated item
+    SELECT json_build_object(
+        'id', id,
+        'description', description,
+        'quantity', quantity,
+        'unitPrice', unit_price,
+        'tax', tax_rate,
+        'discount', discount_rate
+    ) INTO result FROM invoice_items WHERE id = p_item_id;
+    
+    RETURN result;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Procedure: Delete invoice item (Updated with calculation)
 CREATE OR REPLACE FUNCTION delete_invoice_item(p_item_id UUID)
 RETURNS BOOLEAN AS $$

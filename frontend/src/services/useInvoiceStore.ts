@@ -18,12 +18,18 @@ interface InvoiceStore {
     // Actions
     initializeInvoice: () => Promise<void>;
     addItem: (item: Omit<InvoiceItem, 'id'>) => Promise<void>;
-    updateItem: (id: string, updates: Partial<InvoiceItem>) => void;
+    updateItem: (id: string, updates: Partial<InvoiceItem>) => Promise<void>;
     deleteItem: (id: string) => Promise<void>;
     setClientInfo: (info: Partial<ClientInfo>) => Promise<void>;
     updateGlobalTax: (rate: number) => Promise<void>;
     updateGlobalDiscount: (rate: number) => Promise<void>;
     reset: () => void;
+
+    // Internal/Utility
+    flushUpdates: () => Promise<void>;
+    queueUpdate: (id: string, updates: any) => void;
+    _pendingUpdates: Record<string, any>;
+    _debounceTimeout: any;
 }
 
 export const useInvoiceStore = create<InvoiceStore>((set, get) => ({
@@ -69,6 +75,10 @@ export const useInvoiceStore = create<InvoiceStore>((set, get) => ({
 
     addItem: async (item) => {
         let { invoiceId } = get();
+
+        // 1. Flush any pending updates first!
+        await get().flushUpdates();
+
         set({ isSyncing: true });
 
         try {
@@ -102,24 +112,76 @@ export const useInvoiceStore = create<InvoiceStore>((set, get) => ({
         }
     },
 
-    updateItem: (id, updates) => {
-        // Local optimistic update with totals recalculation
+    updateItem: async (id, updates) => {
         const { items, globalTax, globalDiscount } = get();
         const updatedItems = items.map(item =>
             item.id === id ? { ...item, ...updates } : item
         );
 
-        // Recalculate totals locally for immediate feedback
         const newTotals = calculateInvoiceTotals(updatedItems, globalTax, globalDiscount);
-
         set({ items: updatedItems, totals: newTotals });
+
+        // Queue update
+        get().queueUpdate(id, updates);
+    },
+
+    // Internal state for debouncing
+    _pendingUpdates: {},
+    _debounceTimeout: null,
+
+    queueUpdate: (id, updates) => {
+        const { _pendingUpdates, _debounceTimeout } = get();
+
+        // Merge updates
+        const newPending = {
+            ..._pendingUpdates,
+            [id]: { ...(_pendingUpdates[id] || {}), ...updates }
+        };
+
+        if (_debounceTimeout) clearTimeout(_debounceTimeout);
+
+        const timeout = setTimeout(() => {
+            get().flushUpdates();
+        }, 1000); // 1s debounce for stability
+
+        set({ _pendingUpdates: newPending, _debounceTimeout: timeout });
+    },
+
+    flushUpdates: async () => {
+        const { _pendingUpdates, _debounceTimeout, invoiceId } = get();
+
+        if (Object.keys(_pendingUpdates).length === 0) return;
+
+        // Clear timeout and pending immediately to prevent double-flush
+        if (_debounceTimeout) clearTimeout(_debounceTimeout);
+        set({ _pendingUpdates: {}, _debounceTimeout: null });
+
+        try {
+            // Process all pending updates
+            const updatePromises = Object.entries(_pendingUpdates).map(([id, updates]) =>
+                apiService.updateItem(id, updates as any)
+            );
+
+            await Promise.all(updatePromises);
+
+            // After all updates, refresh totals from server to be 100% sure
+            if (invoiceId) {
+                const fullInvoice = await apiService.getInvoice(invoiceId);
+                set({ totals: fullInvoice.totals });
+            }
+        } catch (error) {
+            console.error("Failed to flush updates", error);
+        }
     },
 
     deleteItem: async (itemId) => {
         const { invoiceId } = get();
         if (!invoiceId) return;
-        set({ isSyncing: true });
 
+        // 1. Flush any pending updates first!
+        await get().flushUpdates();
+
+        set({ isSyncing: true });
         try {
             await apiService.deleteItem(itemId);
             const fullInvoice = await apiService.getInvoice(invoiceId);
@@ -156,6 +218,10 @@ export const useInvoiceStore = create<InvoiceStore>((set, get) => ({
     updateGlobalTax: async (rate) => {
         const { invoiceId } = get();
         if (!invoiceId) return;
+
+        // 1. Flush any pending updates first!
+        await get().flushUpdates();
+
         set({ isSyncing: true });
 
         try {
@@ -175,6 +241,10 @@ export const useInvoiceStore = create<InvoiceStore>((set, get) => ({
     updateGlobalDiscount: async (rate) => {
         const { invoiceId } = get();
         if (!invoiceId) return;
+
+        // 1. Flush any pending updates first!
+        await get().flushUpdates();
+
         set({ isSyncing: true });
 
         try {

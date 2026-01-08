@@ -89,7 +89,25 @@ export const invoiceController = {
         }
     },
 
-    // 6. List Invoices
+    // 6. Update Item
+    updateItem: async (req: Request, res: Response) => {
+        try {
+            const { itemId } = req.params;
+            const { description, quantity, unitPrice, tax, discount } = req.body;
+
+            const result = await query(
+                `SELECT * FROM update_invoice_item($1, $2, $3, $4, $5, $6)`,
+                [itemId, description, quantity, unitPrice, tax, discount]
+            );
+
+            res.json(result.rows[0]?.update_invoice_item);
+        } catch (error) {
+            console.error('Error updating item:', error);
+            res.status(500).json({ error: 'Failed to update item' });
+        }
+    },
+
+    // 7. List Invoices
     listInvoices: async (req: Request, res: Response) => {
         try {
             const limit = parseInt(req.query.limit as string) || 50;
