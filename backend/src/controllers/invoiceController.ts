@@ -45,11 +45,11 @@ export const invoiceController = {
     addItem: async (req: Request, res: Response) => {
         try {
             const { id } = req.params; // Invoice ID
-            const { description, quantity, unitPrice, tax, discount } = req.body;
+            const { description, quantity, unitPrice, tax, taxType, discount, discountType } = req.body;
 
             const result = await query(
-                `SELECT * FROM add_invoice_item($1, $2, $3, $4, $5, $6)`,
-                [id, description, quantity, unitPrice, tax, discount]
+                `SELECT * FROM add_invoice_item($1, $2, $3, $4, $5, $6, $7, $8)`,
+                [id, description, quantity, unitPrice, tax, taxType, discount, discountType]
             );
 
             res.status(201).json(result.rows[0]);
@@ -93,11 +93,11 @@ export const invoiceController = {
     updateItem: async (req: Request, res: Response) => {
         try {
             const { itemId } = req.params;
-            const { description, quantity, unitPrice, tax, discount } = req.body;
+            const { description, quantity, unitPrice, tax, taxType, discount, discountType } = req.body;
 
             const result = await query(
-                `SELECT * FROM update_invoice_item($1, $2, $3, $4, $5, $6)`,
-                [itemId, description, quantity, unitPrice, tax, discount]
+                `SELECT * FROM update_invoice_item($1, $2, $3, $4, $5, $6, $7, $8)`,
+                [itemId, description, quantity, unitPrice, tax, taxType, discount, discountType]
             );
 
             res.json(result.rows[0]?.update_invoice_item);

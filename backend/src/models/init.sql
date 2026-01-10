@@ -38,8 +38,8 @@ CREATE TABLE IF NOT EXISTS invoices (
     client_info JSONB NOT NULL DEFAULT '{}'::jsonb,
     
     -- Global modifiers
-    global_tax_rate DECIMAL(5, 2) DEFAULT 0,
-    global_discount_rate DECIMAL(5, 2) DEFAULT 0,
+    global_tax_rate DECIMAL(15, 2) DEFAULT 0,
+    global_discount_rate DECIMAL(15, 2) DEFAULT 0,
     
     -- Totals (Calculated)
     total_ht DECIMAL(15, 2) DEFAULT 0,
@@ -63,8 +63,13 @@ CREATE TABLE IF NOT EXISTS invoice_items (
     unit_price DECIMAL(15, 2) NOT NULL DEFAULT 0,
     
     -- Item-level modifiers
-    tax_rate DECIMAL(5, 2) DEFAULT 0,
-    discount_rate DECIMAL(5, 2) DEFAULT 0,
+    tax_rate DECIMAL(15, 2) DEFAULT 0,
+    tax_type VARCHAR(10) DEFAULT 'percent',
+    discount_rate DECIMAL(15, 2) DEFAULT 0,
+    discount_type VARCHAR(10) DEFAULT 'percent',
+    
+    -- Calculated per item
+    subtotal_ht DECIMAL(15, 2) DEFAULT 0,
     
     position INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -172,11 +177,25 @@ DECLARE
     v_final_discount DECIMAL;
     v_final_total DECIMAL;
 BEGIN
+    -- 0. Update individual item subtotals
+    UPDATE invoice_items SET
+        subtotal_ht = quantity * unit_price
+    WHERE invoice_id = p_invoice_id;
+
     -- 1. Aggregate Items
     SELECT COALESCE(SUM(quantity * unit_price), 0) INTO v_subtotal_ht FROM invoice_items WHERE invoice_id = p_invoice_id;
     
-    SELECT COALESCE(SUM((quantity * unit_price) * (discount_rate / 100)), 0) INTO v_items_discount FROM invoice_items WHERE invoice_id = p_invoice_id;
-    SELECT COALESCE(SUM( ((quantity * unit_price) - ((quantity * unit_price) * (discount_rate / 100))) * (tax_rate / 100) ), 0) INTO v_items_tax FROM invoice_items WHERE invoice_id = p_invoice_id;
+    SELECT COALESCE(SUM(
+        CASE WHEN discount_type = 'amount' THEN discount_rate 
+             ELSE (quantity * unit_price) * (discount_rate / 100) 
+        END
+    ), 0) INTO v_items_discount FROM invoice_items WHERE invoice_id = p_invoice_id;
+
+    SELECT COALESCE(SUM(
+        CASE WHEN tax_type = 'amount' THEN tax_rate
+             ELSE ((quantity * unit_price) - (CASE WHEN discount_type = 'amount' THEN discount_rate ELSE (quantity * unit_price) * (discount_rate / 100) END)) * (tax_rate / 100)
+        END
+    ), 0) INTO v_items_tax FROM invoice_items WHERE invoice_id = p_invoice_id;
 
     -- 2. Get Global Rates
     SELECT global_tax_rate, global_discount_rate 
@@ -216,7 +235,9 @@ CREATE OR REPLACE FUNCTION add_invoice_item(
     p_quantity DECIMAL,
     p_unit_price DECIMAL,
     p_tax DECIMAL DEFAULT 0,
-    p_discount DECIMAL DEFAULT 0
+    p_tax_type VARCHAR DEFAULT 'percent',
+    p_discount DECIMAL DEFAULT 0,
+    p_discount_type VARCHAR DEFAULT 'percent'
 )
 RETURNS JSON AS $$
 DECLARE
@@ -227,8 +248,8 @@ BEGIN
     SELECT COALESCE(MAX(position), 0) + 1 INTO new_position
     FROM invoice_items WHERE invoice_id = p_invoice_id;
     
-    INSERT INTO invoice_items (invoice_id, description, quantity, unit_price, tax_rate, discount_rate, position)
-    VALUES (p_invoice_id, p_description, p_quantity, p_unit_price, p_tax, p_discount, new_position)
+    INSERT INTO invoice_items (invoice_id, description, quantity, unit_price, tax_rate, tax_type, discount_rate, discount_type, position)
+    VALUES (p_invoice_id, p_description, p_quantity, p_unit_price, p_tax, p_tax_type, p_discount, p_discount_type, new_position)
     RETURNING id INTO new_item_id;
     
     -- Recalculate Totals
@@ -240,8 +261,11 @@ BEGIN
         'description', description,
         'quantity', quantity,
         'unitPrice', unit_price,
+        'subtotalHT', subtotal_ht,
         'tax', tax_rate,
-        'discount', discount_rate
+        'taxType', tax_type,
+        'discount', discount_rate,
+        'discountType', discount_type
     ) INTO result FROM invoice_items WHERE id = new_item_id;
     
     RETURN result;
@@ -282,7 +306,9 @@ CREATE OR REPLACE FUNCTION update_invoice_item(
     p_quantity DECIMAL DEFAULT NULL,
     p_unit_price DECIMAL DEFAULT NULL,
     p_tax DECIMAL DEFAULT NULL,
-    p_discount DECIMAL DEFAULT NULL
+    p_tax_type VARCHAR DEFAULT NULL,
+    p_discount DECIMAL DEFAULT NULL,
+    p_discount_type VARCHAR DEFAULT NULL
 )
 RETURNS JSON AS $$
 DECLARE
@@ -296,7 +322,9 @@ BEGIN
         quantity = COALESCE(p_quantity, quantity),
         unit_price = COALESCE(p_unit_price, unit_price),
         tax_rate = COALESCE(p_tax, tax_rate),
-        discount_rate = COALESCE(p_discount, discount_rate)
+        tax_type = COALESCE(p_tax_type, tax_type),
+        discount_rate = COALESCE(p_discount, discount_rate),
+        discount_type = COALESCE(p_discount_type, discount_type)
     WHERE id = p_item_id;
     
     -- Recalculate Totals
@@ -308,8 +336,11 @@ BEGIN
         'description', description,
         'quantity', quantity,
         'unitPrice', unit_price,
+        'subtotalHT', subtotal_ht,
         'tax', tax_rate,
-        'discount', discount_rate
+        'taxType', tax_type,
+        'discount', discount_rate,
+        'discountType', discount_type
     ) INTO result FROM invoice_items WHERE id = p_item_id;
     
     RETURN result;
@@ -362,8 +393,11 @@ BEGIN
                 'description', i.description,
                 'quantity', i.quantity,
                 'unitPrice', i.unit_price,
+                'subtotalHT', i.subtotal_ht,
                 'tax', i.tax_rate,
-                'discount', i.discount_rate
+                'taxType', i.tax_type,
+                'discount', i.discount_rate,
+                'discountType', i.discount_type
             ) ORDER BY i.position, i.created_at)
             FROM invoice_items i WHERE i.invoice_id = d.id
         ), '[]'::json)

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { invoiceController } from '../controllers/invoiceController';
+import { emailController } from '../controllers/emailController';
 
 const router = Router();
 
@@ -23,5 +24,8 @@ router.delete('/items/:itemId', invoiceController.deleteItem);
 
 // Update item
 router.put('/items/:itemId', invoiceController.updateItem);
+
+// Send Invoice Email
+router.post('/:id/send-email', emailController.sendInvoiceEmail);
 
 export default router;

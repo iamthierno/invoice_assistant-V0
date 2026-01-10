@@ -5,9 +5,19 @@ import type { InvoiceItem, InvoiceTotals } from '../types';
  */
 export const calculateItemTotals = (item: InvoiceItem) => {
   const subtotalHT = item.quantity * item.unitPrice;
-  const itemDiscountAmount = subtotalHT * (item.discount / 100);
+
+  // Calcul de la remise
+  const itemDiscountAmount = item.discountType === 'amount'
+    ? item.discount
+    : subtotalHT * (item.discount / 100);
+
   const afterItemDiscount = subtotalHT - itemDiscountAmount;
-  const itemTaxAmount = afterItemDiscount * (item.tax / 100);
+
+  // Calcul de la taxe
+  const itemTaxAmount = item.taxType === 'amount'
+    ? item.tax
+    : afterItemDiscount * (item.tax / 100);
+
   const totalTTC = afterItemDiscount + itemTaxAmount;
 
   return {
@@ -15,6 +25,26 @@ export const calculateItemTotals = (item: InvoiceItem) => {
     itemDiscountAmount,
     itemTaxAmount,
     totalTTC
+  };
+};
+
+/**
+ * Calcule les pourcentages effectifs à partir des montants totaux.
+ */
+export const enrichTotals = (totals: Omit<InvoiceTotals, 'effectiveTax' | 'effectiveDiscount'>): InvoiceTotals => {
+  const effectiveDiscount = totals.subtotal > 0
+    ? Number(((totals.discountTotal / totals.subtotal) * 100).toFixed(2))
+    : 0;
+
+  const baseForTax = totals.subtotal - totals.discountTotal;
+  const effectiveTax = baseForTax > 0
+    ? Number(((totals.taxTotal / baseForTax) * 100).toFixed(2))
+    : 0;
+
+  return {
+    ...totals,
+    effectiveTax,
+    effectiveDiscount
   };
 };
 
@@ -53,12 +83,12 @@ export const calculateInvoiceTotals = (
   const discountTotal = totalItemsDiscount + globalDiscountTotal;
   const total = afterAllDiscounts + taxTotal;
 
-  return {
+  return enrichTotals({
     subtotal,
     taxTotal,
     discountTotal,
     total
-  };
+  });
 };
 
 /**

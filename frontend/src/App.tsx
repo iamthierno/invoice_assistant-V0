@@ -9,16 +9,22 @@ import { ChatHistory } from './components/chat/ChatHistory'
 import { ChatInput } from './components/chat/ChatInput'
 import { VoiceInputButton } from './components/chat/VoiceInputButton'
 import { DevisPreview } from './components/devis/DevisPreview'
+import { MailModal } from './components/modals/MailModal'
+import { apiService } from './services/api'
+import { useState } from 'react'
 
 function App() {
   const {
-    items, clientInfo, globalTax, globalDiscount, totals, status, isSyncing,
-    initializeInvoice, addItem, updateItem, deleteItem, setClientInfo
+    items, clientInfo, globalTax, globalDiscount, totals, isSyncing, showSuccess, invoiceId,
+    initializeInvoice, addItem, updateItem, deleteItem, setClientInfo, reference, saveInvoice
   } = useInvoiceStore()
 
   const { messages, addMessage } = useChat()
   const { isListening, toggleListening } = useVoiceInput()
   const { isProcessing, processCommand } = useAgent()
+
+  const [isMailModalOpen, setIsMailModalOpen] = useState(false)
+  const [isSending, setIsSending] = useState(false)
 
   useEffect(() => {
     initializeInvoice()
@@ -42,7 +48,7 @@ function App() {
         // Fallback simulated logic for demo
         setTimeout(() => {
           if (text.toLowerCase().includes('ajoute')) {
-            addItem({ description: 'Nouveau service', quantity: 1, unitPrice: 50000, tax: 18, discount: 0 })
+            addItem({ description: 'Nouveau service', quantity: 1, unitPrice: 50000, tax: 18, taxType: 'percent', discount: 0, discountType: 'percent' })
             addMessage('assistant', 'Article ajouté au devis.')
           } else {
             addMessage('assistant', 'Je suis à votre écoute.')
@@ -81,6 +87,7 @@ function App() {
       totals={totals}
       globalTax={globalTax}
       globalDiscount={globalDiscount}
+      reference={reference}
       onDeleteItem={deleteItem}
       onClientInfoChange={setClientInfo}
       onUpdateItem={updateItem}
@@ -89,15 +96,46 @@ function App() {
 
   const handleAddItem = () => {
     // Add item with empty values - placeholders will show
-    addItem({ description: '', quantity: 0, unitPrice: 0, tax: 0, discount: 0 })
+    addItem({ description: '', quantity: 0, unitPrice: 0, tax: 0, taxType: 'percent', discount: 0, discountType: 'percent' })
+  }
+
+  const handleMailClick = () => {
+    setIsMailModalOpen(true)
+  }
+
+  const handleSendEmail = async (email: string) => {
+    if (!invoiceId) return;
+
+    setIsSending(true);
+    try {
+      await apiService.sendEmail(invoiceId, email);
+      setIsMailModalOpen(false);
+      // Trigger success toast and reset via store
+      await saveInvoice();
+    } catch (error) {
+      console.error("Failed to send email", error);
+      alert("Erreur lors de l'envoi de l'email");
+    } finally {
+      setIsSending(false);
+    }
   }
 
   return (
-    <DashboardLayout
-      leftPanel={LeftPanel}
-      rightPanel={RightPanel}
-      onAddItem={handleAddItem}
-    />
+    <>
+      <DashboardLayout
+        leftPanel={LeftPanel}
+        rightPanel={RightPanel}
+        onAddItem={handleAddItem}
+        onMailClick={handleMailClick}
+        showSuccess={showSuccess}
+      />
+      <MailModal
+        isOpen={isMailModalOpen}
+        onClose={() => setIsMailModalOpen(false)}
+        onSend={handleSendEmail}
+        isSending={isSending}
+      />
+    </>
   )
 }
 

@@ -12,12 +12,13 @@ interface DevisPreviewProps {
     totals: InvoiceTotals;
     globalTax: number;
     globalDiscount: number;
+    reference: string | null;
     onDeleteItem: (id: string) => void;
     onClientInfoChange?: (info: Partial<ClientInfo>) => void;
     onUpdateItem?: (id: string, updates: Partial<InvoiceItem>) => void;
 }
 
-export const DevisPreview = ({ items, clientInfo, totals, globalTax, globalDiscount, onDeleteItem, onClientInfoChange, onUpdateItem }: DevisPreviewProps) => {
+export const DevisPreview = ({ items, clientInfo, totals, reference, onDeleteItem, onClientInfoChange, onUpdateItem }: DevisPreviewProps) => {
     const scrollRef = useRef<HTMLDivElement>(null);
     const prevItemsLength = useRef(items.length);
 
@@ -41,7 +42,6 @@ export const DevisPreview = ({ items, clientInfo, totals, globalTax, globalDisco
         >
             {/* Header */}
             <div className="flex justify-between items-start mb-2">
-
                 <div className="text-left text-sm">
                     <p className="font-bold text-slate-900 uppercase">Artisan Pro Services</p>
                     <p className="text-slate-500">Prestation de Services</p>
@@ -49,7 +49,7 @@ export const DevisPreview = ({ items, clientInfo, totals, globalTax, globalDisco
                 <div className="text-right">
                     <div className="w-10 h-1 bg-blue-600 mb-4" />
                     <h2 className="text-4xl font-bold text-slate-900 tracking-tighter uppercase italic line-height-none">DEVIS</h2>
-                    <p className="text-xs text-slate-400 mt-1 font-mono">#DV-2026-001</p>
+                    <p className="text-xs text-slate-400 mt-1 font-mono">#{reference || 'DV-2026-...'}</p>
                 </div>
             </div>
 
@@ -88,32 +88,32 @@ export const DevisPreview = ({ items, clientInfo, totals, globalTax, globalDisco
 
             {/* Items Table */}
             <div className="flex-1 overflow-y-auto scrollbar-hide min-h-0 pr-8 -mr-8 relative" ref={scrollRef}>
-                <table className="w-full text-left border-separate border-spacing-0">
+                <table className="w-full text-left border-separate border-spacing-0 table-fixed">
                     <thead className="sticky top-0 z-20">
                         <tr className="text-slate-900 text-[11px] font-bold uppercase tracking-widest">
                             <th className="py-3 bg-white border-b border-slate-900">Désignation</th>
-                            <th className="py-3 px-2 text-center w-30 bg-white border-b border-slate-900">Qté</th>
-                            <th className="py-3 px-2 text-center w-50 bg-white border-b border-slate-900">PU (XOF)</th>
-                            <th className="py-3 text-right bg-white border-b border-slate-900">Montant HT (XOF)</th>
+                            <th className="py-3 px-2 text-center w-24 bg-white border-b border-slate-900">Qté</th>
+                            <th className="py-3 px-2 text-center w-44 bg-white border-b border-slate-900">PU (XOF)</th>
+                            <th className="py-3 text-right w-44 bg-white border-b border-slate-900">Montant HT (XOF)</th>
                         </tr>
                     </thead>
-                    <tbody className="text-slate-700">
-                        <AnimatePresence initial={false}>
-                            {items.length === 0 ? (
+                    <AnimatePresence initial={false}>
+                        {items.length === 0 ? (
+                            <tbody className="text-slate-700">
                                 <tr>
                                     <td colSpan={4} className="py-12 text-center opacity-40 italic text-[12px]"> En attente d'article ...</td>
                                 </tr>
-                            ) : (
-                                items.map((item) => (
-                                    <DevisItemRow key={item.id} item={item} onDelete={onDeleteItem} onUpdate={onUpdateItem} />
-                                ))
-                            )}
-                        </AnimatePresence>
-                    </tbody>
+                            </tbody>
+                        ) : (
+                            items.map((item) => (
+                                <DevisItemRow key={item.id} item={item} onDelete={onDeleteItem} onUpdate={onUpdateItem} />
+                            ))
+                        )}
+                    </AnimatePresence>
                 </table>
             </div>
 
-            <DevisTotals totals={totals} globalTax={globalTax} globalDiscount={globalDiscount} />
+            <DevisTotals totals={totals} />
 
             {/* Footer */}
             <div className="mt-2 pt-1 border-t border-slate-200 flex justify-between items-end">
@@ -131,11 +131,8 @@ export const DevisPreview = ({ items, clientInfo, totals, globalTax, globalDisco
                         <p className="text-[9px] text-slate-400 mt-5">Numéro: +223 27 22 00 00</p>
                         <p className="text-[9px] text-slate-400 mt-1">Email: contact@artisansproservices.com</p>
                     </div>
-
                 </div>
-
             </div>
-
         </motion.div>
     )
 }

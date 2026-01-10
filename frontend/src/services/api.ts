@@ -46,5 +46,10 @@ export const apiService = {
     async listUserDevis() {
         const response = await axios.get(`${config.apiUrl}/api/invoices`);
         return response.data;
+    },
+
+    async sendEmail(invoiceId: string, toEmail: string) {
+        const response = await axios.post(`${config.apiUrl}/api/invoices/${invoiceId}/send-email`, { toEmail });
+        return response.data;
     }
 };

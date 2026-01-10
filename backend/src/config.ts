@@ -17,5 +17,9 @@ export const config = {
     redis: {
         url: process.env.REDIS_URL
     },
-    jwtSecret: process.env.JWT_SECRET
+    jwtSecret: process.env.JWT_SECRET,
+    email: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
 };
