@@ -1,4 +1,4 @@
-import { query } from './db';
+import { query } from '../db';
 
 const runScenario = async () => {
     try {

@@ -1,4 +1,4 @@
-import { query } from './db';
+import { query } from '../db';
 
 const runCase1 = async () => {
     console.log('\n--- CASE 1: Item Modifiers Only (Global 0) ---');

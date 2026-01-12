@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { User, Phone } from 'lucide-react'
+import { useEffect, useRef } from 'react'
 import type { ClientInfo, InvoiceItem, InvoiceTotals } from '../../types'
 import { DevisItemRow } from './DevisItemRow'
 import { DevisTotals } from './DevisTotals'
@@ -11,10 +12,28 @@ interface DevisPreviewProps {
     totals: InvoiceTotals;
     globalTax: number;
     globalDiscount: number;
+    reference: string | null;
     onDeleteItem: (id: string) => void;
+    onClientInfoChange?: (info: Partial<ClientInfo>) => void;
+    onUpdateItem?: (id: string, updates: Partial<InvoiceItem>) => void;
 }
 
-export const DevisPreview = ({ items, clientInfo, totals, globalTax, globalDiscount, onDeleteItem }: DevisPreviewProps) => {
+export const DevisPreview = ({ items, clientInfo, totals, reference, onDeleteItem, onClientInfoChange, onUpdateItem }: DevisPreviewProps) => {
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const prevItemsLength = useRef(items.length);
+
+    useEffect(() => {
+        if (items.length > prevItemsLength.current) {
+            if (scrollRef.current) {
+                scrollRef.current.scrollTo({
+                    top: scrollRef.current.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }
+        }
+        prevItemsLength.current = items.length;
+    }, [items.length]);
+
     return (
         <motion.div
             initial={{ opacity: 0, x: 20 }}
@@ -23,7 +42,6 @@ export const DevisPreview = ({ items, clientInfo, totals, globalTax, globalDisco
         >
             {/* Header */}
             <div className="flex justify-between items-start mb-2">
-
                 <div className="text-left text-sm">
                     <p className="font-bold text-slate-900 uppercase">Artisan Pro Services</p>
                     <p className="text-slate-500">Prestation de Services</p>
@@ -31,29 +49,35 @@ export const DevisPreview = ({ items, clientInfo, totals, globalTax, globalDisco
                 <div className="text-right">
                     <div className="w-10 h-1 bg-blue-600 mb-4" />
                     <h2 className="text-4xl font-bold text-slate-900 tracking-tighter uppercase italic line-height-none">DEVIS</h2>
-                    <p className="text-xs text-slate-400 mt-1 font-mono">#DV-2026-001</p>
+                    <p className="text-xs text-slate-400 mt-1 font-mono">#{reference || 'DV-2026-...'}</p>
                 </div>
             </div>
 
             {/* Client Info */}
             <div className="flex justify-between items-center mb-2 border-y border-slate-100 py-3">
                 <div className="flex-1 flex items-center">
-                    <div className="w-[60%] flex items-center gap-2.5">
+                    <div className="font-semibold w-[60%] flex items-center gap-1.5 ">
                         <button className="text-slate-400 hover:text-blue-600 transition-all hover:scale-110 active:scale-95">
                             <User size={16} />
                         </button>
                         <input
-                            className="hover:border-blue-600 border-slate-100 hover:border rounded-md ml-6 p-1 absolute "
-                            type="text" placeholder="Client" value={clientInfo.name}
+                            className="border border-slate-100 hover:border-blue-400 focus:border-blue-600 focus:outline-none rounded-md px-2 py-1 text-sm flex-1 transition-colors"
+                            type="text"
+                            placeholder="Nom du client"
+                            value={clientInfo.name}
+                            onChange={(e) => onClientInfoChange?.({ name: e.target.value })}
                         />
                     </div>
-                    <div className="font-semibold w-[60%] flex items-center gap-2.5 text-slate-500">
+                    <div className="font-semibold w-[60%] flex items-center ml-4 gap-1.5">
                         <button className="text-slate-400 hover:text-blue-600 transition-all hover:scale-110 active:scale-95">
                             <Phone size={16} />
                         </button>
                         <input
-                            className="hover:border-blue-600 border-slate-100 hover:border rounded-md ml-6 p-1 absolute"
-                            type="text" placeholder="Phone" value={clientInfo.phone}
+                            className="border border-slate-100 hover:border-blue-400 focus:border-blue-600 focus:outline-none rounded-md px-2 py-1 text-sm flex-1 transition-colors"
+                            type="text"
+                            placeholder="Téléphone"
+                            value={clientInfo.phone}
+                            onChange={(e) => onClientInfoChange?.({ phone: e.target.value })}
                         />
                     </div>
                 </div>
@@ -63,33 +87,33 @@ export const DevisPreview = ({ items, clientInfo, totals, globalTax, globalDisco
             </div>
 
             {/* Items Table */}
-            <div className="flex-1 overflow-hidden min-h-0 py-1">
-                <table className="w-full text-left">
-                    <thead>
-                        <tr className="border-b border-slate-900 text-slate-900 text-[10px] font-bold uppercase tracking-widest">
-                            <th className="py-4">Désignation</th>
-                            <th className="py-4 px-4 text-center">Qté</th>
-                            <th className="py-4 px-4 text-right">PU (XOF)</th>
-                            <th className="py-4 text-right">Total HT (XOF)</th>
+            <div className="flex-1 overflow-y-auto scrollbar-hide min-h-0 pr-8 -mr-8 relative" ref={scrollRef}>
+                <table className="w-full text-left border-separate border-spacing-0 table-fixed">
+                    <thead className="sticky top-0 z-20">
+                        <tr className="text-slate-900 text-[11px] font-bold uppercase tracking-widest">
+                            <th className="py-3 bg-white border-b border-slate-900">Désignation</th>
+                            <th className="py-3 px-2 text-center w-24 bg-white border-b border-slate-900">Qté</th>
+                            <th className="py-3 px-2 text-center w-44 bg-white border-b border-slate-900">PU (XOF)</th>
+                            <th className="py-3 text-right w-44 bg-white border-b border-slate-900">Montant HT (XOF)</th>
                         </tr>
                     </thead>
-                    <tbody className="text-slate-700 overflow-y-auto max-h-full scrollbar-hide">
-                        <AnimatePresence initial={false}>
-                            {items.length === 0 ? (
+                    <AnimatePresence initial={false}>
+                        {items.length === 0 ? (
+                            <tbody className="text-slate-700">
                                 <tr>
                                     <td colSpan={4} className="py-12 text-center opacity-40 italic text-[12px]"> En attente d'article ...</td>
                                 </tr>
-                            ) : (
-                                items.map((item) => (
-                                    <DevisItemRow key={item.id} item={item} onDelete={onDeleteItem} />
-                                ))
-                            )}
-                        </AnimatePresence>
-                    </tbody>
+                            </tbody>
+                        ) : (
+                            items.map((item) => (
+                                <DevisItemRow key={item.id} item={item} onDelete={onDeleteItem} onUpdate={onUpdateItem} />
+                            ))
+                        )}
+                    </AnimatePresence>
                 </table>
             </div>
 
-            <DevisTotals totals={totals} globalTax={globalTax} globalDiscount={globalDiscount} />
+            <DevisTotals totals={totals} />
 
             {/* Footer */}
             <div className="mt-2 pt-1 border-t border-slate-200 flex justify-between items-end">
@@ -107,11 +131,8 @@ export const DevisPreview = ({ items, clientInfo, totals, globalTax, globalDisco
                         <p className="text-[9px] text-slate-400 mt-5">Numéro: +223 27 22 00 00</p>
                         <p className="text-[9px] text-slate-400 mt-1">Email: contact@artisansproservices.com</p>
                     </div>
-
                 </div>
-
             </div>
-
         </motion.div>
     )
 }

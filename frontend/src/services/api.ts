@@ -31,6 +31,12 @@ export const apiService = {
         return response.data;
     },
 
+    // Update an item
+    async updateItem(itemId: string, item: Partial<{ description: string; quantity: number; unitPrice: number; tax: number; discount: number }>) {
+        const response = await axios.put(`${config.apiUrl}/api/invoices/items/${itemId}`, item);
+        return response.data;
+    },
+
     // Update Global fields (Tax, Discount, Client)
     async updateInvoice(invoiceId: string, data: { clientInfo?: ClientInfo; globalTax?: number; globalDiscount?: number }) {
         const response = await axios.put(`${config.apiUrl}/api/invoices/${invoiceId}`, data);
@@ -39,6 +45,16 @@ export const apiService = {
 
     async listUserDevis() {
         const response = await axios.get(`${config.apiUrl}/api/invoices`);
+        return response.data;
+    },
+
+    async sendEmail(invoiceId: string, toEmail: string) {
+        const response = await axios.post(`${config.apiUrl}/api/invoices/${invoiceId}/send-email`, { toEmail });
+        return response.data;
+    },
+
+    async sendWhatsApp(invoiceId: string, toPhoneNumber: string) {
+        const response = await axios.post(`${config.apiUrl}/api/invoices/${invoiceId}/send-whatsapp`, { toPhoneNumber });
         return response.data;
     }
 };

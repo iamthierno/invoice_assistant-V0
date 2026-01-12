@@ -3,8 +3,11 @@ export interface InvoiceItem {
     description: string;
     quantity: number;
     unitPrice: number;
+    subtotalHT: number;
     tax: number;
     discount: number;
+    taxType: 'percent' | 'amount';
+    discountType: 'percent' | 'amount';
 }
 
 export interface ClientInfo {
@@ -23,4 +26,6 @@ export interface InvoiceTotals {
     taxTotal: number;
     discountTotal: number;
     total: number;
+    effectiveTax: number;
+    effectiveDiscount: number;
 }

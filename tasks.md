@@ -1,23 +1,23 @@
 # Development Plan: Assistant Devis
 
 ## 1. Project Infrastructure
-- [ ] 1.1 Create folder structure (`frontend`, `backend`, `invoice_agent`)
+- [X] 1.1 Create folder structure (`frontend`, `backend`, `invoice_agent`)
 ## 2. Frontend - Client Side
-- [ ] 2.0 .env.frontend et config.ts doivent être dans le dossier frontend
-- [ ] 2.1 **Core Logic**: Define TS types and implement calculation logic
-- [ ] 2.2 **State Management**: Implement `useInvoiceStore` (Zustand)
-- [ ] 2.3 **Services**: Implement `api.ts` (Backend) and `agent.ts` (NDJSON Streaming)
-- [ ] 2.4 **Hooks**: Implement `useVoiceInput`, `useAgent`, `useChat`
-- [ ] 2.5 **Components**: Modularize UI (`VoiceInputButton`, `ChatInput`, `ChatHistory`, `DevisPreview`, etc.)
-- [ ] 2.6 **Styling**: Finalize minimalist white design and premium animations
+- [X] 2.0 .env.frontend et config.ts doivent être dans le dossier frontend
+- [X] 2.1 **Core Logic**: Define TS types and implement calculation logic
+- [X] 2.2 **State Management**: Implement `useInvoiceStore` (Zustand)
+- [X] 2.3 **Services**: Implement `api.ts` (Backend) and `agent.ts` (NDJSON Streaming)
+- [X] 2.4 **Hooks**: Implement `useVoiceInput`, `useAgent`, `useChat`
+- [X] 2.5 **Components**: Modularize UI (`VoiceInputButton`, `ChatInput`, `ChatHistory`, `DevisPreview`, etc.)
+- [X] 2.6 **Styling**: Finalize minimalist white design and premium animations
 - [ ] 2.7 **Testing**: Property tests for calculations
   - **Property 1**: Calcul correct des totaux d'article
   - **Property 2**: Calcul correct des totaux du devis
 
 ## 3. Backend - Server Side
 - [ ] 3.0 .env.backend et config.ts doivent être dans le dossier backend
-- [ ] 3.1 **DB Layer**: PostgreSQL models and stored procedures
-- [ ] 3.2 **Logic**: CRUD controllers for invoices and analytics
+- [X] 3.1 **DB Layer**: PostgreSQL models and stored procedures
+- [X] 3.2 **Logic**: CRUD controllers for invoices and analytics
 - [ ] 3.3 **API**: Define routes (/api/devis, /api/agent/command, /api/agent/analytics)
 - [ ] 3.4 **PDF**: Implement PDF generation service
 - [ ] 3.5 **Testing**: NDJSON format validation

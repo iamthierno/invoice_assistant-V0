@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { invoiceController } from '../controllers/invoiceController';
+import { emailController } from '../controllers/emailController';
+import { whatsappController } from '../controllers/whatsappController';
 
 const router = Router();
 
@@ -20,5 +22,14 @@ router.post('/:id/items', invoiceController.addItem);
 
 // Delete item
 router.delete('/items/:itemId', invoiceController.deleteItem);
+
+// Update item
+router.put('/items/:itemId', invoiceController.updateItem);
+
+// Send Invoice Email
+router.post('/:id/send-email', emailController.sendInvoiceEmail);
+
+// Send Invoice WhatsApp
+router.post('/:id/send-whatsapp', whatsappController.sendInvoiceWhatsApp);
 
 export default router;
