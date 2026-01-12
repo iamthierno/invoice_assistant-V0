@@ -21,5 +21,9 @@ export const config = {
     email: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
+    },
+    whatsapp: {
+        token: process.env.WHATSAPP_TOKEN,
+        phoneId: process.env.WHATSAPP_PHONE_ID
     }
 };

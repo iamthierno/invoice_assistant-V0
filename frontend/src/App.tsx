@@ -1,4 +1,5 @@
-import { useEffect } from 'react'
+
+import { useEffect, useState } from 'react'
 import { MoreHorizontal, Loader2 } from 'lucide-react'
 import { useInvoiceStore } from './services/useInvoiceStore'
 import { useChat } from './hooks/useChat'
@@ -10,8 +11,8 @@ import { ChatInput } from './components/chat/ChatInput'
 import { VoiceInputButton } from './components/chat/VoiceInputButton'
 import { DevisPreview } from './components/devis/DevisPreview'
 import { MailModal } from './components/modals/MailModal'
+import { WhatsAppModal } from './components/modals/WhatsAppModal'
 import { apiService } from './services/api'
-import { useState } from 'react'
 
 function App() {
   const {
@@ -24,6 +25,7 @@ function App() {
   const { isProcessing, processCommand } = useAgent()
 
   const [isMailModalOpen, setIsMailModalOpen] = useState(false)
+  const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false)
   const [isSending, setIsSending] = useState(false)
 
   useEffect(() => {
@@ -103,6 +105,10 @@ function App() {
     setIsMailModalOpen(true)
   }
 
+  const handleWhatsAppClick = () => {
+    setIsWhatsAppModalOpen(true)
+  }
+
   const handleSendEmail = async (email: string) => {
     if (!invoiceId) return;
 
@@ -120,6 +126,23 @@ function App() {
     }
   }
 
+  const handleSendWhatsApp = async (phoneNumber: string) => {
+    if (!invoiceId) return;
+
+    setIsSending(true);
+    try {
+      await apiService.sendWhatsApp(invoiceId, phoneNumber);
+      setIsWhatsAppModalOpen(false);
+      // Trigger success toast and reset via store
+      await saveInvoice();
+    } catch (error) {
+      console.error("Failed to send WhatsApp", error);
+      alert("Erreur lors de l'envoi du message WhatsApp");
+    } finally {
+      setIsSending(false);
+    }
+  }
+
   return (
     <>
       <DashboardLayout
@@ -127,6 +150,7 @@ function App() {
         rightPanel={RightPanel}
         onAddItem={handleAddItem}
         onMailClick={handleMailClick}
+        onWhatsAppClick={handleWhatsAppClick}
         showSuccess={showSuccess}
       />
       <MailModal
@@ -134,6 +158,12 @@ function App() {
         onClose={() => setIsMailModalOpen(false)}
         onSend={handleSendEmail}
         isSending={isSending}
+      />
+      <WhatsAppModal
+        isOpen={isWhatsAppModalOpen}
+        onClose={() => setIsWhatsAppModalOpen(false)}
+        onSend={handleSendWhatsApp}
+        defaultPhoneNumber={clientInfo.phone}
       />
     </>
   )

@@ -51,5 +51,10 @@ export const apiService = {
     async sendEmail(invoiceId: string, toEmail: string) {
         const response = await axios.post(`${config.apiUrl}/api/invoices/${invoiceId}/send-email`, { toEmail });
         return response.data;
+    },
+
+    async sendWhatsApp(invoiceId: string, toPhoneNumber: string) {
+        const response = await axios.post(`${config.apiUrl}/api/invoices/${invoiceId}/send-whatsapp`, { toPhoneNumber });
+        return response.data;
     }
 };

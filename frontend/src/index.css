@@ -165,3 +165,65 @@ input[type="number"] {
   -moz-appearance: textfield;
   appearance: textfield;
 }
+
+@media print {
+  @page {
+    margin: 0;
+    size: auto;
+  }
+
+  body {
+    background: white;
+  }
+
+  /* Hide everything by default */
+  body>* {
+    display: none !important;
+  }
+
+  /* Only show the root app div but handle its children */
+  #root {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Hide the left panel (sidebar) */
+  #root>div>div:first-child {
+    display: none !important;
+  }
+
+  /* Hide floating actions */
+  .no-print {
+    display: none !important;
+  }
+
+  /* Target the right panel container */
+  #root>div>div:nth-child(2) {
+    padding: 0 !important;
+    margin: 0 !important;
+    background: white !important;
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Target the invoice paper itself */
+  .invoice-paper {
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 2cm !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    transform: none !important;
+    display: block !important;
+  }
+
+  /* Ensure text colors are black for printing */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
