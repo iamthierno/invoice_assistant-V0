@@ -32,17 +32,25 @@ export const calculateItemTotals = (item: InvoiceItem) => {
  * Calcule les pourcentages effectifs à partir des montants totaux.
  */
 export const enrichTotals = (totals: Omit<InvoiceTotals, 'effectiveTax' | 'effectiveDiscount'>): InvoiceTotals => {
-  const effectiveDiscount = totals.subtotal > 0
-    ? Number(((totals.discountTotal / totals.subtotal) * 100).toFixed(2))
+  const subtotal = Number(totals.subtotal);
+  const discountTotal = Number(totals.discountTotal);
+  const taxTotal = Number(totals.taxTotal);
+  const total = Number(totals.total);
+
+  const effectiveDiscount = subtotal > 0
+    ? Number(((discountTotal / subtotal) * 100).toFixed(2))
     : 0;
 
-  const baseForTax = totals.subtotal - totals.discountTotal;
+  const baseForTax = subtotal - discountTotal;
   const effectiveTax = baseForTax > 0
-    ? Number(((totals.taxTotal / baseForTax) * 100).toFixed(2))
+    ? Number(((taxTotal / baseForTax) * 100).toFixed(2))
     : 0;
 
   return {
-    ...totals,
+    subtotal,
+    discountTotal,
+    taxTotal,
+    total,
     effectiveTax,
     effectiveDiscount
   };

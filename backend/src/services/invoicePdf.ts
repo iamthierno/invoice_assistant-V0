@@ -32,7 +32,7 @@ export const generateInvoicePdf = (invoice: any): Promise<Buffer> => {
             // DEVIS Label (Right)
             // Blue accent line
             doc
-                .rect(450, 45, 50, 3)
+                .rect(480, 45, 30, 3)
                 .fill(COLOR_PRIMARY);
 
             doc
@@ -41,9 +41,7 @@ export const generateInvoicePdf = (invoice: any): Promise<Buffer> => {
                 .fillColor(COLOR_DARK)
                 .text('DEVIS', 450, 60, { width: 100, align: 'right' }); // Align right relative to x=450? No, width 100 starting at 450 ends at 550. Page width is ~595. 
 
-            // Actually, let's align correctly to the right margin (approx 545)
-            doc
-                .text('DEVIS', 0, 60, { align: 'right', indent: 0, width: 545 });
+
 
             doc
                 .font('Helvetica')

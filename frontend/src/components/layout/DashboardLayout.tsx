@@ -1,13 +1,5 @@
 import type { ReactNode } from 'react'
 import { Printer, Mail, Plus, CheckCircle } from 'lucide-react'
-// ...
-<button
-    onClick={() => window.print()}
-    className="w-12 h-12 bg-white shadow-xl rounded-xl flex items-center justify-center text-slate-400 hover:text-blue-600 transition-all border border-slate-100 hover:scale-110 active:scale-95"
-    title="Imprimer"
->
-    <Printer size={20} />
-</button>
 import { AnimatePresence, motion } from 'framer-motion'
 
 interface DashboardLayoutProps {

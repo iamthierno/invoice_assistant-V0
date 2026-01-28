@@ -17,7 +17,7 @@ import { apiService } from './services/api'
 function App() {
   const {
     items, clientInfo, globalTax, globalDiscount, totals, isSyncing, showSuccess, invoiceId,
-    initializeInvoice, addItem, updateItem, deleteItem, setClientInfo, reference, saveInvoice
+    initializeInvoice, addItem, updateItem, deleteItem, setClientInfo, reference, saveInvoice, refreshInvoice
   } = useInvoiceStore()
 
   const { messages, addMessage } = useChat()
@@ -35,34 +35,24 @@ function App() {
   const handleSendMessage = async (text: string) => {
     addMessage('user', text)
 
-    // Process through agent (mocked logic for frontend verification)
+    // Process through agent
     await processCommand(text, (event) => {
       // Direct handlers if agent returns structured events
-      if (event.type === 'addItem') {
-        addItem(event.data)
-        addMessage('assistant', `J'ai ajouté "${event.data.description}" au devis.`)
-      } else if (event.type === 'setClientInfo') {
-        setClientInfo(event.data)
-        addMessage('assistant', `Les informations client ont été mises à jour.`)
+      if (event.type === 'invoiceCreated') {
+        refreshInvoice(event.invoiceId)
+      } else if (event.type === 'invoiceUpdated') {
+        refreshInvoice()
       } else if (event.type === 'text') {
         addMessage('assistant', event.content)
-      } else {
-        // Fallback simulated logic for demo
-        setTimeout(() => {
-          if (text.toLowerCase().includes('ajoute')) {
-            addItem({ description: 'Nouveau service', quantity: 1, unitPrice: 50000, tax: 18, taxType: 'percent', discount: 0, discountType: 'percent' })
-            addMessage('assistant', 'Article ajouté au devis.')
-          } else {
-            addMessage('assistant', 'Je suis à votre écoute.')
-          }
-        }, 500)
+      } else if (event.type === 'error') {
+        addMessage('assistant', `Désolé, une erreur est survenue: ${event.content}`)
       }
     })
   }
 
   const LeftPanel = (
     <>
-      <div className="p-6 border-b border-slate-120 flex items-center justify-between">
+      <div className="p-6 border-b border-slate-100 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-slate-800 uppercase">
             Assistant<span className="text-blue-600">Devis</span>

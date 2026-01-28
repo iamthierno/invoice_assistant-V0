@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { config } from '../config';
-import type { InvoiceItem, ClientInfo } from '../types';
+import type { ClientInfo } from '../types';
 
 export const apiService = {
     // Create a new empty invoice

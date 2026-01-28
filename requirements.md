@@ -152,23 +152,20 @@ backend/
    
 invoice_agent/
   core/
+    agent_kit/          # Kit LangChain Deep Agents
+      subagent.py         # Subagents spécialisés (analyse, PDF)
+      prompts.py          # Tous les prompts système
+      tools/
+        # ajouter les tools ici
+      memory.py             # Logique de Mémoire 
+      llm.py # Switcher entre providers
     main_agent.py       # Agent principal LangChain Deep Agents
-    subagent.py         # Subagents spécialisés (analyse, PDF)
-    prompts.py          # Tous les prompts système
-  tools/
-    # ajouter les tools ici
-    _toolkit_.py          # Regroupement de tous les tools ici
-  memories/
-    backend.py    # Backend Redis pour session éphémère
-    memory_manager.py   # Gestion mémoire (Redis + PostgreSQL)
-  llm/
-    ollama.py           # Client Ollama
-    openrouter.py       # Client OpenRouter
-    llm_provider.py     # Switcher entre providers
+  schemas/              # Schémas Pydantic pour les donnéess
   api/v1/
     endpoints.py        # Endpoints FastAPI NDJSON streaming
-    schemas.py          # Schémas Pydantic
   main.py               # Démarrage FastAPI + uvicorn
+  pyproject.toml        # Dépendances Python
+  utils.py              # Fonctions utilitaires
   .env                # Variables d'environnement
   config.py             # Variables d'environnement Python
   requirements.txt      # Dépendances Python
