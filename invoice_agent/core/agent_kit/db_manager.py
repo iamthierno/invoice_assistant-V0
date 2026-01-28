@@ -1,18 +1,18 @@
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import logging
-from config import DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME
+from config import PGUSER, PGPASSWORD, PGHOST, PGPORT, PGDATABASE
 
 logger = logging.getLogger(__name__)
 
 class DBManager:
     def __init__(self):
         self.conn_params = {
-            "user": DB_USER,
-            "password": DB_PASSWORD,
-            "host": DB_HOST,
-            "port": DB_PORT,
-            "database": DB_NAME
+            "user": PGUSER,
+            "password": PGPASSWORD,
+            "host": PGHOST,
+            "port": PGPORT,
+            "database": PGDATABASE
         }
 
     def execute_query(self, query, params=None):
