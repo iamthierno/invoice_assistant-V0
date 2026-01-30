@@ -16,6 +16,7 @@ services:
       - postgres_data:/var/lib/postgresql
     networks:
       - invoice_network
+      - dokploy-network
 
   backend:
     build: ./backend
@@ -31,6 +32,7 @@ services:
       - db
     networks:
       - invoice_network
+      - dokploy-network
 
   invoice_agent:
     build: ./invoice_agent
@@ -47,6 +49,7 @@ services:
       - backend
     networks:
       - invoice_network
+      - dokploy-network
 
   frontend:
     build:
@@ -64,10 +67,13 @@ services:
       - backend
     networks:
       - invoice_network
+      - dokploy-network
 
 networks:
   invoice_network:
     driver: bridge
+  dokploy-network:
+    external: true
 
 volumes:
   postgres_data:
