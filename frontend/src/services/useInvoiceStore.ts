@@ -25,6 +25,7 @@ interface InvoiceStore {
     updateGlobalTax: (rate: number) => Promise<void>;
     updateGlobalDiscount: (rate: number) => Promise<void>;
     saveInvoice: () => Promise<void>;
+    refreshInvoice: (id?: string | null) => Promise<void>;
     reset: () => void;
 
     // Internal/Utility
@@ -58,6 +59,16 @@ export const useInvoiceStore = create<InvoiceStore>((set, get) => ({
 
         set({ isSyncing: true });
         try {
+            // Check for existing invoices first to maintain context across reloads
+            const existingInvoices = await apiService.listUserDevis();
+
+            if (existingInvoices && existingInvoices.length > 0) {
+                const latest = existingInvoices[0];
+                await get().refreshInvoice(latest.id);
+                return;
+            }
+
+            // Fallback: create a new one if none exists
             const newInvoice = await apiService.createInvoice({ name: '', phone: '' }, 0, 0);
             set({
                 invoiceId: newInvoice.id,
@@ -255,6 +266,42 @@ export const useInvoiceStore = create<InvoiceStore>((set, get) => ({
             console.error("Failed to save invoice", error);
         } finally {
             set({ isSyncing: false, showSuccess: false });
+        }
+    },
+
+    refreshInvoice: async (id) => {
+        const targetId = id || get().invoiceId;
+        if (!targetId) return;
+
+        // Immediately set the ID if provided to avoid race conditions with concurrent refreshes
+        if (id) {
+            set({ invoiceId: id });
+        }
+
+        set({ isSyncing: true });
+        try {
+            const fullInvoice = await apiService.getInvoice(targetId);
+            set({
+                invoiceId: fullInvoice.id,
+                reference: fullInvoice.reference,
+                items: (fullInvoice.items || []).map((item: any) => ({
+                    ...item,
+                    quantity: Number(item.quantity || 0),
+                    unitPrice: Number(item.unitPrice || 0),
+                    subtotalHT: Number(item.subtotalHT || 0),
+                    tax: Number(item.tax || 0),
+                    discount: Number(item.discount || 0)
+                })),
+                clientInfo: fullInvoice.clientInfo || { name: '', phone: '' },
+                globalTax: Number(fullInvoice.globalTax || 0),
+                globalDiscount: Number(fullInvoice.globalDiscount || 0),
+                totals: enrichTotals(fullInvoice.totals),
+                status: fullInvoice.status
+            });
+        } catch (error) {
+            console.error("Failed to refresh invoice", error);
+        } finally {
+            set({ isSyncing: false });
         }
     },
 

@@ -1,12 +1,12 @@
 import { config } from '../config';
 
 export const agentService = {
-    async sendCommand(command: string, onChunk: (chunk: any) => void) {
+    async sendCommand(command: string, onChunk: (chunk: any) => void, invoiceId?: string | null) {
         try {
-            const response = await fetch(`${config.agentUrl}/agent/command`, {
+            const response = await fetch(`${config.agentUrl}/api/v1/agent/command`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ command }),
+                body: JSON.stringify({ command, invoice_id: invoiceId }),
             });
 
             if (!response.body) return;

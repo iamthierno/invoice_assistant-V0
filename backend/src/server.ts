@@ -24,8 +24,8 @@ app.get('/', (req, res) => {
 const startServer = async () => {
     try {
         await initDb();
-        app.listen(config.port, () => {
-            console.log(`Backend server running on ${config.url}`);
+        app.listen(config.backend_port, () => {
+            console.log(`Backend server running on ${config.backend_url}`);
         });
     } catch (error) {
         console.error('Failed to start server:', error);

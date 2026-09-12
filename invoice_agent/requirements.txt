@@ -1,0 +1,13 @@
+# Invoice Agent Dependencies
+deepagents
+langchain
+langchain-core
+langchain-community
+langchain-ollama
+langchain-openai
+langgraph
+python-dotenv
+httpx
+fastapi
+uvicorn
+psycopg2-binary

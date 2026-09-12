@@ -15,12 +15,7 @@ DROP FUNCTION IF EXISTS update_invoice(uuid, jsonb, numeric, numeric);
 DROP FUNCTION IF EXISTS delete_invoice_item(uuid);
 DROP FUNCTION IF EXISTS list_invoices(integer, integer);
 
-DROP FUNCTION IF EXISTS create_invoice(jsonb, numeric, numeric);
-DROP FUNCTION IF EXISTS get_invoice_with_items(uuid);
-DROP FUNCTION IF EXISTS add_invoice_item(uuid, text, numeric, numeric, numeric, numeric);
-DROP FUNCTION IF EXISTS update_invoice(uuid, jsonb, numeric, numeric);
-DROP FUNCTION IF EXISTS delete_invoice_item(uuid);
-DROP FUNCTION IF EXISTS list_invoices(integer, integer);
+
 
 -- ============================================
 -- 1. TABLES & SEQUENCES
@@ -422,7 +417,7 @@ RETURNS TABLE(
     item_count BIGINT,
     total_ttc DECIMAL,
     status VARCHAR,
-    created_at TIMESTAMP
+    created_at TIMESTAMP WITH TIME ZONE
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -431,9 +426,7 @@ BEGIN
         d.reference,
         d.client_info->>'name' as client_name,
         COUNT(i.id) as item_count,
-        d.total_ttc, -- This field needs to be maintained or calculated. For strict realtime, we can calc it.
-                     -- For now let's just return 0 or do a subquery sum if total_ttc isn't auto-maintained.
-                     -- Let's stick to simple select for MVP.
+        d.total_ttc,
         d.status,
         d.created_at
     FROM invoices d
